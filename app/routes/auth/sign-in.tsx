@@ -14,7 +14,7 @@ export async function action({ request }: Route.ActionArgs) {
     const response = await auth.api.signInEmail({
       request,
       headers: request.headers,
-      returnHeaders: true,
+      asResponse: true,
       body: {
         email,
         password,

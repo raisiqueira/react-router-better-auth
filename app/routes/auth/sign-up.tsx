@@ -19,7 +19,7 @@ export async function action({ request }: Route.LoaderArgs) {
     const response = await auth.api.signUpEmail({
       request,
       headers: request.headers,
-      returnHeaders: true,
+      asResponse: true,
       body: {
         name,
         email,
