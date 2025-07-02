@@ -1,19 +1,19 @@
-import { auth } from "~/lib/auth";
-import type { Route } from "./+types/sign-up";
-import { Form, href, redirect, useActionData, Link } from "react-router";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import type { Route } from './+types/sign-up'
+import { Form, href, Link, redirect, useActionData } from 'react-router'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { auth } from '~/lib/auth'
 
 export async function loader() {
-  return {};
+  return {}
 }
 
 export async function action({ request }: Route.LoaderArgs) {
-  const formData = await request.formData();
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const formData = await request.formData()
+  const name = formData.get('name') as string
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
   try {
     const response = await auth.api.signUpEmail({
@@ -25,20 +25,22 @@ export async function action({ request }: Route.LoaderArgs) {
         email,
         password,
       },
-    });
+    })
 
-    return redirect(href("/"), {
+    return redirect(href('/'), {
       headers: response.headers,
-    });
-  } catch (error) {
+    })
+  }
+  catch (error) {
+    console.error('Sign-up error:', error)
     return {
-      error: "An error occurred during sign-up. Please try again.",
-    };
+      error: 'An error occurred during sign-up. Please try again.',
+    }
   }
 }
 
 export default function SignUp() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<typeof action>()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -48,7 +50,8 @@ export default function SignUp() {
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{" "}
+            Or
+            {' '}
             <Link
               to="/auth/sign-in"
               className="font-medium text-primary hover:text-primary/80"
@@ -112,5 +115,5 @@ export default function SignUp() {
         </div>
       </div>
     </div>
-  );
+  )
 }

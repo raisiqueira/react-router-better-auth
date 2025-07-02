@@ -1,33 +1,37 @@
-import { auth } from "~/lib/auth";
-import type { Route } from "./+types/protected";
-import { href, redirect, Link, Form } from "react-router";
-import { Button } from "~/components/ui/button";
+import type { Route } from './+types/protected'
+import { Suspense } from 'react'
+import { Await, Form, href, Link, redirect } from 'react-router'
+import { Button } from '~/components/ui/button'
+import { apiClient } from '~/lib/api-client'
+import { auth } from '~/lib/auth'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({
     headers: request.headers,
-  });
+  })
+  const dataFromAPI = apiClient.protected.$get()
 
   if (!session) {
-    throw redirect(href("/auth/login"));
+    throw redirect(href('/auth/sign-in'))
   }
 
   return {
     user: session.user,
-    session: session,
-  };
+    session,
+    dataFromAPI,
+  }
 }
 
 export async function action({ request }: Route.ActionArgs) {
   await auth.api.signOut({
     headers: request.headers,
-  });
+  })
 
-  throw redirect(href("/"));
+  throw redirect(href('/'))
 }
 
 export default function Protected({ loaderData }: Route.ComponentProps) {
-  const { user, session } = loaderData;
+  const { user, session, dataFromAPI } = loaderData
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -48,7 +52,10 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Welcome back, {user.email}!
+                  Welcome back,
+                  {' '}
+                  {user.email}
+                  !
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
                   You're successfully authenticated and viewing a protected
@@ -83,7 +90,7 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
                         Verified:
                       </span>
                       <span className="text-gray-900 dark:text-white">
-                        {user.emailVerified ? "Yes" : "No"}
+                        {user.emailVerified ? 'Yes' : 'No'}
                       </span>
                     </div>
                     {user.name && (
@@ -121,7 +128,8 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
                         Session ID:
                       </span>
                       <span className="text-gray-900 dark:text-white font-mono text-xs">
-                        {session.session?.id?.slice(0, 16)}...
+                        {session.session?.id?.slice(0, 16)}
+                        ...
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -131,9 +139,9 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
                       <span className="text-gray-900 dark:text-white">
                         {session.session?.expiresAt
                           ? new Date(
-                              session.session.expiresAt,
-                            ).toLocaleDateString()
-                          : "Never"}
+                            session.session.expiresAt,
+                          ).toLocaleDateString()
+                          : 'Never'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -143,13 +151,25 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
                       <span className="text-gray-900 dark:text-white">
                         {session.session?.createdAt
                           ? new Date(
-                              session.session.createdAt,
-                            ).toLocaleDateString()
-                          : "Unknown"}
+                            session.session.createdAt,
+                          ).toLocaleDateString()
+                          : 'Unknown'}
                       </span>
                     </div>
                   </div>
                 </div>
+
+                <Suspense fallback={<div>Loading API Data...</div>}>
+                  <Await
+                    resolve={dataFromAPI}
+                    children={(data) => {
+                      return <div>{JSON.stringify(data)}</div>
+                    }}
+                    errorElement={
+                      <div>Could not load reviews 😬</div>
+                    }
+                  />
+                </Suspense>
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
@@ -170,5 +190,5 @@ export default function Protected({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

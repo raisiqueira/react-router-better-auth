@@ -1,6 +1,6 @@
-import { href } from "react-router";
-import logoDark from "./logo-dark.svg";
-import logoLight from "./logo-light.svg";
+import { href } from 'react-router'
+import logoDark from './logo-dark.svg'
+import logoLight from './logo-light.svg'
 
 export function Welcome() {
   return (
@@ -27,18 +27,18 @@ export function Welcome() {
             </p>
             <ul>
               <li>
-                <a href={href("/auth/login")}>Login</a>
+                <a href={href('/auth/sign-in')}>Login</a>
               </li>
               <li>
-                <a href={href("/auth/register")}>Register</a>
+                <a href={href('/auth/sign-up')}>Register</a>
               </li>
               <li>
-                <a href={href("/protected")}>Protected</a>
+                <a href={href('/protected')}>Protected</a>
               </li>
             </ul>
           </nav>
         </div>
       </div>
     </main>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-import { Form, href, redirect, useActionData, Link } from "react-router";
-import type { Route } from "./+types/sign-in";
-import { auth } from "~/lib/auth";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import type { Route } from './+types/sign-in'
+import { Form, href, Link, redirect, useActionData } from 'react-router'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { auth } from '~/lib/auth'
 
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const formData = await request.formData()
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
   try {
     const response = await auth.api.signInEmail({
@@ -19,20 +19,22 @@ export async function action({ request }: Route.ActionArgs) {
         email,
         password,
       },
-    });
+    })
 
-    return redirect(href("/protected"), {
+    return redirect(href('/protected'), {
       headers: response.headers,
-    });
-  } catch (error) {
+    })
+  }
+  catch (error) {
+    console.error('Sign-in error:', error)
     return {
-      error: "Invalid email or password. Please try again.",
-    };
+      error: 'Invalid email or password. Please try again.',
+    }
   }
 }
 
 export default function SignIn() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<typeof action>()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -42,7 +44,8 @@ export default function SignIn() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{" "}
+            Or
+            {' '}
             <Link
               to="/auth/sign-up"
               className="font-medium text-primary hover:text-primary/80"
@@ -94,5 +97,5 @@ export default function SignIn() {
         </div>
       </div>
     </div>
-  );
+  )
 }
