@@ -3,6 +3,8 @@ import { openAPI } from 'better-auth/plugins'
 import Database from 'better-sqlite3'
 
 export const auth = betterAuth({
+  baseURL: 'http://localhost:5173',
+  trustedOrigins: ['http://localhost:5173'],
   database: new Database('./sqlite.db'),
   emailAndPassword: {
     enabled: true,
