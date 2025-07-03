@@ -5,14 +5,24 @@ import { createHonoServer } from 'react-router-hono-server/node'
 import { auth } from '~/lib/auth'
 import { logger } from '~/lib/logger'
 import { mergeOpenApiSchemas } from '~/lib/openapi-merge'
+import { corsMiddleware } from './middleware/cors'
 import { exampleMiddleware } from './middleware/example'
 import { authRouter } from './routes/auth'
 import { healthRouter } from './routes/health'
 import { protectedRouter } from './routes/protected'
 
+export interface Variables {
+  auth: typeof auth
+}
+
+export interface Env {
+  Variables: Variables
+}
+
 logger.info('loading server')
 
 const app = new Hono().basePath('/api')
+app.use(corsMiddleware)
 app.use('*', exampleMiddleware())
 
 const appRouter = app
@@ -53,10 +63,12 @@ app.get('/docs', Scalar({
 }))
 
 // eslint-disable-next-line antfu/no-top-level-await
-const server = await createHonoServer({
+const server = await createHonoServer<Env>({
   configure: (app) => {
+    app.use(corsMiddleware)
     app.route('/', appRouter)
   },
+  getLoadContext: ctx => ({ ctx }),
 })
 
 export default server
