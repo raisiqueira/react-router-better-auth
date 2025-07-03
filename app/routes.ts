@@ -1,5 +1,5 @@
 import type { RouteConfig } from '@react-router/dev/routes'
-import { index, route } from '@react-router/dev/routes'
+import { index, prefix, route } from '@react-router/dev/routes'
 
 export default [
   index('routes/home.tsx'),
@@ -8,4 +8,6 @@ export default [
   route('auth/sign-up', 'routes/auth/sign-up.tsx'),
   route('protected', 'routes/protected.tsx'),
   // Better Auth API routes are managed by the server.ts file (Hono server setup)
+  ...prefix('api', [route('auth/*', 'routes/api/auth.tsx')]),
+
 ] satisfies RouteConfig
