@@ -9,6 +9,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({
     headers: request.headers,
   })
+
+  console.log('Session:', request.headers)
+
+  // TODO: check why this is not working (returns 401)
   const dataFromAPI = apiClient.protected.$get()
 
   if (!session) {
