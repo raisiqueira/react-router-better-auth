@@ -53,9 +53,6 @@ const server = await createHonoServer<Env>({
       }
       return c.json({ message: 'Protected data from Hono API', user, session })
     })
-    app.get('/x', (c) => {
-      return c.json({ message: 'Hello from /x' })
-    })
   },
 })
 
