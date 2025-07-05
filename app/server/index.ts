@@ -1,41 +1,30 @@
+import type { Env } from './types'
+import { csrf } from 'hono/csrf'
+import { createMiddleware } from 'hono/factory'
 import { createHonoServer } from 'react-router-hono-server/node'
 import { auth } from '~/lib/auth'
 import { logger } from '~/lib/logger'
-
-export interface Variables {
-  auth: typeof auth
-  user: any
-  session: any
-  loadContext: any
-}
-
-export interface Env {
-  Variables: Variables
-}
+import { corsMiddleware } from './middleware/cors'
 
 logger.info('loading server')
+
+function withAuth() {
+  return createMiddleware(async (ctx, next) => {
+    ctx.set('auth', auth)
+
+    await next()
+  })
+}
 
 // eslint-disable-next-line antfu/no-top-level-await
 const server = await createHonoServer<Env>({
   configure: (app) => {
-    // app.use(corsMiddleware)
+    app.use(corsMiddleware)
+    app.use(withAuth())
     // Better Auth session middleware - extracts session from cookies
     app.use('*', async (c, next) => {
-      console.log('Session middleware headers:', c.req.raw.headers)
-
-      // Get the original request from React Router context
-      const loadContext = c.get('loadContext')
-      let headers = c.req.raw.headers
-
-      if (loadContext?.params) {
-        console.log('LoadContext params:', loadContext.params)
-        // Try to find the request in the params
-        if (loadContext.params.request) {
-          console.log('Original React Router request headers:', loadContext.params.request.headers)
-          headers = loadContext.params.request.headers
-        }
-      }
-
+      // Session validation logic here
+      const headers = new Headers(c.req.raw.headers)
       const session = await auth.api.getSession({
         headers,
       })
@@ -44,29 +33,29 @@ const server = await createHonoServer<Env>({
         c.set('user', session.user)
         c.set('session', session.session)
       }
-      else {
-        c.set('user', null)
-        c.set('session', null)
-      }
 
       await next()
+    })
+    app.use(csrf())
+    app.on(['POST', 'GET'], '/api/auth/*', (c) => {
+      return auth.handler(c.req.raw)
     })
     app.get('/api/protected', (c) => {
       const user = c.get('user')
       const session = c.get('session')
-      console.log('Protected route user:', user)
-      console.log('Protected route session:', session)
 
       if (!user || !session) {
-        return c.json({ error: 'Unauthorized' }, 401)
+        return c.json({
+          error: 'Unauthorized',
+          message:
+            'This is likely due to cookies not being forwarded properly when directly navigating to Hono API routes. Try using the React Router API route at /api/protected instead.',
+        }, 401)
       }
-      return c.json({ message: 'Protected data', user, session })
+      return c.json({ message: 'Protected data from Hono API', user, session })
     })
-  },
-  getLoadContext: (ctx, params) => {
-    // Store the original request in the context so we can access cookies
-    ctx.set('loadContext', { params })
-    return { ctx }
+    app.get('/x', (c) => {
+      return c.json({ message: 'Hello from /x' })
+    })
   },
 })
 

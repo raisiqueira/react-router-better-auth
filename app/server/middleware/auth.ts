@@ -1,13 +1,8 @@
-import type { Session } from '~/lib/auth'
+import type { Env } from '../types'
 import { createMiddleware } from 'hono/factory'
 import { auth } from '~/lib/auth'
 
-export const authMiddleware = createMiddleware<{
-  Variables: {
-    session: Session['session']
-    user: Session['user']
-  }
-}>(async (c, next) => {
+export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
   })

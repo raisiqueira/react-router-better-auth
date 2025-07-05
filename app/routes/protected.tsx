@@ -4,16 +4,16 @@ import { Await, Form, href, Link, redirect } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { apiClient } from '~/lib/api-client'
 import { auth } from '~/lib/auth'
+import { createServerApiClient } from '~/lib/server-api-client'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({
     headers: request.headers,
   })
 
-  console.log('Session:', request.headers)
-
-  // TODO: check why this is not working (returns 401)
-  const dataFromAPI = apiClient.protected.$get()
+  const api = createServerApiClient(request)
+  const response = await api.protected.$get()
+  const data = response.json()
 
   if (!session) {
     throw redirect(href('/auth/sign-in'))
@@ -22,7 +22,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     user: session.user,
     session,
-    dataFromAPI,
+    dataFromAPI: data,
+  }
+}
+
+export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
+  const response = await apiClient.protected.$get()
+  const data = await response.json()
+  const serverData = await serverLoader()
+  return {
+    ...serverData,
+    clientData: data,
   }
 }
 

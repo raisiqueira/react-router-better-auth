@@ -1,11 +1,17 @@
 import type { AppRouter } from '~/server'
 import { hc } from 'hono/client'
 
-export const apiClient = hc<AppRouter>('http://localhost:5173/', {
-  fetch: ((input, init) => {
+const client = hc<AppRouter>('http://localhost:5173', {
+  fetch: (input: RequestInfo | URL, requestInit?: RequestInit) => {
+    // Ensure we're always including credentials
     return fetch(input, {
-      ...init,
+      ...requestInit,
       credentials: 'include',
+      headers: {
+        ...requestInit?.headers,
+      },
     })
-  }) satisfies typeof fetch,
-}).api
+  },
+})
+
+export const apiClient = client.api
